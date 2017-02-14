@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Working Hours vs. Sitting Hours</title>
+  <link href="https://fonts.googleapis.com/css?family=Dosis|Merriweather:700" rel="stylesheet">
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3-selection-multi.v0.4.min.js"></script>
+
+  <style>
+
+    body {
+      display: block;
+      width: 960px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #555;
+      font-family: 'Merriweather', serif;
+      font-size: 48px;
+      margin-bottom: 0;
+      text-align: center;
+    }
+
+    .w {
+      display: inline-block;
+      line-height: 40px;
+      border-bottom: 4px solid rgb(87, 192, 225);
+    }
+
+    .s {
+      display: inline-block;
+      line-height: 40px;
+      border-bottom: 4px solid rgb(237, 81, 164);
+    }
+
+    .yAxis path {
+      stroke: #fff;
+    }
+
+    .yAxis line {
+      stroke: #eee;
+      stroke-width: 1px;
+      shape-rendering: crispEdges;
+    }
+
+    .yAxis text, .label {
+      fill: #ddd;
+      font-family: 'Dosis', sans-serif;
+      font-size: 24px;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <h1>Survey Results: Self-reported Daily <br/><span class="w">Working Hours</span> vs. <span class="s">Sitting Hours</span></h1>
+
+  <script type="text/javascript">
+
+    margin = {
+      'top': 50,
+      'right': 50,
+      'bottom': 50,
+      'left': 50
+    }
+
+    var dataset = {};
+    var svg;
+    var scale;
+    var w = 960 - margin.left - margin.right;
+    var h = 600 - margin.top - margin.bottom;
+    var barPadding = 10
+    var maxYValue = 0;
+
+
+    d3.csv('working-hours-vs-sitting-hours.csv', function(error, data) {
+
+      if (error) {
+
+        console.log(error);
+
+      } else {
+
+        dataset = data;
+
+        dataset.sort(function(a, b) {
+
+          if ((a['workingHours'] - a['sittingHours']) > (b['workingHours'] - b['sittingHours'])) {
+            return -1;
+          } else {
+            return 1;
+          }
+
+        });
+
+        maxYValue = d3.max([d3.max(dataset, function(d) { return parseInt(d['workingHours'])}), d3.max(dataset, function(d) { return parseInt(d['sittingHours'])})]);
+
+        scale = d3.scaleLinear()
+                  .domain([0, maxYValue])
+                  .range([h, 0]);
+
+        var yAxis = d3.axisLeft()
+                      .scale(scale)
+                      .ticks(5)
+                      .tickPadding(10)
+                      .tickSize(-w)
+                      .tickFormat(function(d, i) {
+                        if (d == maxYValue) {
+                           return d + 'h';
+                        } else {
+                          return d;
+                        }
+                      });
+
+        svg = createSVG(w + margin.left + margin.right, h + margin.top + margin.bottom, 'body');
+
+        svg.append('g')
+           .attr('class', 'yAxis')
+           .attr('transform', 'translate(' + margin.left + ' ,' + margin.top + ')')
+           .call(yAxis);
+
+        drawRects(dataset);
+        drawLabels(dataset);
+
+        d3.selectAll('.bar')
+          .attr('transform', 'translate(0 ,' + margin.top + ')')
+
+      }
+
+    });
+
+    var createSVG = function(width, height, parentNode) {
+
+      return d3.select(parentNode)
+                  .append('svg')
+                  .attr('width', width)
+                  .attr('height', height);
+
+    }
+
+    var drawRects = function(data) {
+
+      svg.selectAll('.bar')
+         .data(data)
+         .enter()
+         .append('g')
+         .attr('class', 'bar')
+         .append('rect')
+         .attrs({
+           'x': function(d, i) { return i * (w / dataset.length) + margin.left + barPadding; },
+           'y': function(d, i) { return scale(d['workingHours']); },
+           'width': function(d, i) { return ( w / dataset.length - barPadding) / 2;},
+           'height': function(d, i) { return h - scale(d['workingHours']); },
+           'fill': function(d) { return 'rgb(87, 192, 225)'},
+           'opacity': '.8'
+         });
+
+      svg.selectAll('.bar')
+         .data(data)
+         .append('rect')
+         .attrs({
+           'x': function(d, i) { return i * ( w / dataset.length) + ( w / dataset.length - barPadding) / 2 + barPadding + margin.left; },
+           'y': function(d, i) { return scale(d['sittingHours']); },
+           'width': function(d, i) { return ( w / dataset.length - barPadding) / 2;},
+           'height': function(d, i) { return h - scale(d['sittingHours']); },
+           'fill': function(d) { return 'rgb(237, 81, 164)'},
+           'opacity': '.8'
+         });
+
+    }
+
+    var drawLabels = function(data) {
+
+      svg.selectAll('.bar')
+         .data(dataset)
+         .append('text')
+         .text(function(d, i) { return 'P' + (i + 1); })
+         .attrs({
+           'x': function(d, i) { return i * ( w / dataset.length) + ( w / dataset.length - barPadding) / 2 + barPadding + margin.left; },
+           'y': function(d, i) { return h + 30; },
+           'class': 'label',
+           'text-anchor': 'middle'
+         });
+
+    }
+
+  </script>
+</body>
+
+</html>
