@@ -71,7 +71,8 @@
 
     var dataset = {};
     var svg;
-    var scale;
+    var yScale;
+    var xScale;
     var w = 960 - margin.left - margin.right;
     var h = 600 - margin.top - margin.bottom;
     var barPadding = 10
@@ -90,7 +91,7 @@
 
         dataset.sort(function(a, b) {
 
-          if ((a['workingHours'] - a['sittingHours']) > (b['workingHours'] - b['sittingHours'])) {
+          if ((a.workingHours - a.sittingHours) > (b.workingHours - b.sittingHours)) {
             return -1;
           } else {
             return 1;
@@ -98,14 +99,14 @@
 
         });
 
-        maxYValue = d3.max([d3.max(dataset, function(d) { return parseInt(d['workingHours'])}), d3.max(dataset, function(d) { return parseInt(d['sittingHours'])})]);
+        maxYValue = d3.max([d3.max(dataset, function(d) { return parseInt(d.workingHours)}), d3.max(dataset, function(d) { return parseInt(d.sittingHours)})]);
 
-        scale = d3.scaleLinear()
+        yScale = d3.scaleLinear()
                   .domain([0, maxYValue])
                   .range([h, 0]);
 
         var yAxis = d3.axisLeft()
-                      .scale(scale)
+                      .scale(yScale)
                       .ticks(5)
                       .tickPadding(10)
                       .tickSize(-w)
@@ -116,6 +117,12 @@
                           return d;
                         }
                       });
+
+        xScale = d3.scaleBand()
+                   .domain(d3.range(dataset.length))
+                   .range([0, w])
+                   .round(true)
+                   .paddingInner(0.1);
 
         svg = createSVG(w + margin.left + margin.right, h + margin.top + margin.bottom, 'body');
 
@@ -128,7 +135,12 @@
         drawLabels(dataset);
 
         d3.selectAll('.bar')
-          .attr('transform', 'translate(0 ,' + margin.top + ')')
+          .attr('transform', 'translate(' + margin.left + ' ,' + margin.top + ')');
+
+        d3.select('body')
+          .on('click', function() {
+            console.log('aa');
+          });
 
       }
 
@@ -152,10 +164,10 @@
          .attr('class', 'bar')
          .append('rect')
          .attrs({
-           'x': function(d, i) { return i * (w / dataset.length) + margin.left + barPadding; },
-           'y': function(d, i) { return scale(d['workingHours']); },
-           'width': function(d, i) { return ( w / dataset.length - barPadding) / 2;},
-           'height': function(d, i) { return h - scale(d['workingHours']); },
+           'x': function(d, i) { return xScale(i); },
+           'y': function(d, i) { return yScale(d.workingHours); },
+           'width': function(d, i) { return xScale.bandwidth() / 2; },
+           'height': function(d, i) { return h - yScale(d.workingHours); },
            'fill': function(d) { return 'rgb(87, 192, 225)'},
            'opacity': '.8'
          });
@@ -164,10 +176,10 @@
          .data(data)
          .append('rect')
          .attrs({
-           'x': function(d, i) { return i * ( w / dataset.length) + ( w / dataset.length - barPadding) / 2 + barPadding + margin.left; },
-           'y': function(d, i) { return scale(d['sittingHours']); },
-           'width': function(d, i) { return ( w / dataset.length - barPadding) / 2;},
-           'height': function(d, i) { return h - scale(d['sittingHours']); },
+           'x': function(d, i) { return xScale(i) + xScale.bandwidth() / 2; },
+           'y': function(d, i) { return yScale(d.sittingHours); },
+           'width': function(d, i) { return xScale.bandwidth() / 2; },
+           'height': function(d, i) { return h - yScale(d.sittingHours); },
            'fill': function(d) { return 'rgb(237, 81, 164)'},
            'opacity': '.8'
          });
@@ -181,7 +193,7 @@
          .append('text')
          .text(function(d, i) { return 'P' + (i + 1); })
          .attrs({
-           'x': function(d, i) { return i * ( w / dataset.length) + ( w / dataset.length - barPadding) / 2 + barPadding + margin.left; },
+           'x': function(d, i) { return xScale(i) + xScale.bandwidth() / 2; },
            'y': function(d, i) { return h + 30; },
            'class': 'label',
            'text-anchor': 'middle'
