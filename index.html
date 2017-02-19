@@ -10,16 +10,29 @@
 
   <style>
 
+    @font-face {
+      font-family: ScalaWebPro;
+      src: url("fonts/ScalaWebPro.eot");
+      src: url("fonts/ScalaWebPro.woff") format("woff");
+    }
+
+    @font-face {
+      font-family: ScalaSansWebPro-Light;
+      src: url("fonts/ScalaSansWebPro-Light.eot");
+      src: url("fonts/ScalaSansWebPro-Light.woff") format("woff");
+    }
+
     body {
-      font-family: 'Asap', sans-serif;
+      font-family: ScalaWebPro, sans-serif;
       font-size: 18px;
       color: #353535;
     }
 
     h1 {
       color: #555;
-      font-family: 'Merriweather', serif;
+      font-family: 'ScalaSansWebPro-Light', serif;
       font-size: 48px;
+      line-height: 120%;
       margin-bottom: 0;
       text-align: center;
     }
@@ -30,13 +43,13 @@
 
     .w {
       display: inline-block;
-      line-height: 40px;
+      line-height: 34px;
       border-bottom: 4px solid rgb(87, 192, 225);
     }
 
     .s {
       display: inline-block;
-      line-height: 40px;
+      line-height: 34px;
       border-bottom: 4px solid rgb(237, 81, 164);
     }
 
@@ -52,7 +65,7 @@
 
     .yAxis text, .label {
       fill: #ccc;
-      font-family: 'Asap', sans-serif;
+      font-family: 'ScalaSansWebPro-Light', sans-serif;
       font-size: 24px;
     }
 
